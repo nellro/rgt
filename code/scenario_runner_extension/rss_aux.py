@@ -5,27 +5,27 @@ import inspect
 class RssParams:
     def __init__(self, x):
         try:
-            assert(len(x) == 2)
+            assert(len(x) == 8)
             self.alpha_lon_accel_max = x[0]
             self.alpha_lon_brake_max = x[1]
-            #self.alpha_lon_brake_min = x[2]
-            #self.alpha_lon_brake_min_correct = x[3]
-            #self.alpha_lat_accel_max = x[4]
-            #self.alpha_lat_brake_min = x[5]
-            #self.lateral_fluctuation_margin = x[6]
-            #self.response_time = x[3]
+            self.alpha_lon_brake_min = x[2]
+            self.alpha_lon_brake_min_correct = x[3]
+            self.alpha_lat_accel_max = x[4]
+            self.alpha_lat_brake_min = x[5]
+            self.lateral_fluctuation_margin = x[6]
+            self.response_time = x[7]
         except AssertionError as exception:
             print('x length is not rssParam appropriate')
             print(exception)
 
     def __str__(self):
-        return ('X = (%.3f, %.3f)' % (self.alpha_lon_accel_max, self.alpha_lon_brake_max)) 
-                                                                        #self.alpha_lon_brake_min,
-                                                                        #self.alpha_lon_brake_min_correct, 
-                                                                        #self.alpha_lat_accel_max, 
-                                                                        #self.alpha_lat_brake_min, 
-                                                                        #self.lateral_fluctuation_margin, 
-                                                                        #self.response_time))
+        return ('X = (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f)' % (self.alpha_lon_accel_max, self.alpha_lon_brake_max, 
+                                                                        self.alpha_lon_brake_min,
+                                                                        self.alpha_lon_brake_min_correct, 
+                                                                        self.alpha_lat_accel_max, 
+                                                                        self.alpha_lat_brake_min, 
+                                                                        self.lateral_fluctuation_margin, 
+                                                                        self.response_time))
 
 
 # ==============================================================================
@@ -76,13 +76,13 @@ class RssSensor(object):
         def set_parameters(rss_dynamics, rss_params):
             rss_dynamics.alpha_lon.accel_max =         carla.Acceleration(rss_params.alpha_lon_accel_max)
             rss_dynamics.alpha_lon.brake_max =         carla.Acceleration(rss_params.alpha_lon_brake_max)
-            rss_dynamics.alpha_lon.brake_min =         carla.Acceleration(8.0)
-            #rss_dynamics.alpha_lon.brake_min_correct = carla.Acceleration(rss_params.alpha_lon_brake_min_correct)
-            #rss_dynamics.alpha_lat.accel_max =         carla.Acceleration(rss_params.alpha_lat_accel_max)
-            #rss_dynamics.alpha_lat.brake_min =         carla.Acceleration(rss_params.alpha_lat_brake_min)
-            #rss_dynamics.lateral_fluctuation_margin =  carla.Distance(rss_params.lateral_fluctuation_margin)
-            #rss_dynamics.response_time =               carla.Duration(rss_params.response_time)     
-            rss_dynamics.response_time =               carla.Duration(0.1)     
+            rss_dynamics.alpha_lon.brake_min =         carla.Acceleration(rss_params.alpha_lon_brake_min)
+            rss_dynamics.alpha_lon.brake_min_correct = carla.Acceleration(rss_params.alpha_lon_brake_min_correct)
+            rss_dynamics.alpha_lat.accel_max =         carla.Acceleration(rss_params.alpha_lat_accel_max)
+            rss_dynamics.alpha_lat.brake_min =         carla.Acceleration(rss_params.alpha_lat_brake_min)
+            rss_dynamics.lateral_fluctuation_margin =  carla.Distance(rss_params.lateral_fluctuation_margin)
+            rss_dynamics.response_time =               carla.Duration(rss_params.response_time)     
+
             return rss_dynamics
 
         rss_dynamics = set_parameters(self.sensor.ego_vehicle_dynamics, self.rss_params)

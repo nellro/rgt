@@ -254,10 +254,10 @@ class ScenarioRunner(object):
                 self.cleanup()
                 pass
         self.load_and_run_scenario(args, config, scenario)
-        rob = robustness.getRobustness(args.filename_traj)
+        # rob = robustness.getRobustness(args.filename_traj)
 
-        other_aux.write2csv(args.filename_rob, rob)
-        return rob
+        # other_aux.write2csv(args.filename_rob, rob)
+        # return rob
 
 
 
@@ -267,7 +267,7 @@ class ScenarioRunner(object):
         config = scenario_configurations[0] # since we work only with one scenario!
 
         num_simult_runs = 1
-        nruns = 200
+        nruns = 0
         ####################################
         # 0 
         alpha_lon_accel_max = 16.62885703232409
@@ -306,30 +306,42 @@ class ScenarioRunner(object):
 
         #################################
         #true:
-        #alpha_lon_accel_max = 3.5
-        #alpha_lon_break_max = 8.0
-        #alpha_lon_brake_min = 4.0
-        #alpha_lon_brake_min_correct = 3.0
-        #alpha_lat_accel_max = 0.2
-        #alpha_lat_brake_min = 0.8
-        #lateral_fluctuation_margin = 0.0
-        #response_time = 1.0
+        alpha_lon_accel_max = 3.5
+        alpha_lon_accel_max_max = 20.0
+        alpha_lon_accel_max_min = 0.0
+
+        alpha_lon_break_max = 8.0
+        alpha_lon_break_max_max = 8.0
+        alpha_lon_break_max_min = 0.0
+        
+
+        alpha_lon_brake_min = 4.0
+        alpha_lon_brake_min_max = 15.0
+        alpha_lon_brake_min_min = 0.0
+
+        alpha_lon_brake_min_correct = 3.0
+        
+        alpha_lat_accel_max = 0.2
+        alpha_lat_brake_min = 0.8
+        
+        lateral_fluctuation_margin = 0.0
+        response_time = 1.0
         ####################################
         x0 = np.array([alpha_lon_accel_max,
-                       alpha_lon_break_max])
-                       #alpha_lon_brake_min,
-                       #alpha_lon_brake_min_correct,
-                       #alpha_lat_accel_max,
-                       #alpha_lat_brake_min,
-                       #lateral_fluctuation_margin,
-                       #response_time])
-        X0 =[]
-        for _ in xrange(num_simult_runs):
-            X0.append(x0)
+                       alpha_lon_break_max,
+                       alpha_lon_brake_min,
+                       alpha_lon_brake_min_correct,
+                       alpha_lat_accel_max,
+                       alpha_lat_brake_min,
+                       lateral_fluctuation_margin,
+                       response_time])
+        # X0 =[]
+        # for _ in range(num_simult_runs):
+        #     X0.append(x0)
 
         ####################################
-        searchSpace = np.array([[alpha_lon_accel_max_min, alpha_lon_accel_max_max], 
-                                [alpha_lon_break_max_min, alpha_lon_break_max_max]])
+        # searchSpace = np.array([[alpha_lon_accel_max_min, alpha_lon_accel_max_max], 
+        #                         [alpha_lon_break_max_min, alpha_lon_break_max_max]])
                                 #[alpha_lon_brake_min_min, alpha_lon_brake_min_max],
                                 #[alpha_lon_brake_min_correct_min, alpha_lon_brake_min_correct_max],
                                 #[alpha_lat_accel_max_min, alpha_lat_accel_max_max],
@@ -340,7 +352,10 @@ class ScenarioRunner(object):
         def ff(x):
             return self.simulate(config, args, x)
 
-        best_x_history, best_f_history, x_history, f_history, accept_x_history, accept_flags = annealing.runFunc(ff, X0, searchSpace, nruns, num_simult_runs, RES_FOLDER) 
+        ff(x0)
+        # print(y)
+
+        # best_x_history, best_f_history, x_history, f_history, accept_x_history, accept_flags = annealing.runFunc(ff, X0, searchSpace, nruns, num_simult_runs, RES_FOLDER) 
 
 
 
