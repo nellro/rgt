@@ -8,7 +8,7 @@ RSS, CARLA, parameter exploration and magic.
 ```
 make launch
 make package
-make libCarla.client.rss
+make LibCarla.client.rss
 make PythonAPI.rss
 ```
 - If there is an error "not compliant with RSS version, please do PythonAPI.rss" do
