@@ -339,11 +339,11 @@ if __name__ == '__main__':
     # 7. Rss_PovUnprotectedLeft
     #    (Intersection scenarios)
     ###############################################################
-    ARGUMENTS.scenario = 'Rss_LVS'
+    #ARGUMENTS.scenario = 'Rss_LVS'
     #ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     #ARGUMENTS.scenario = 'Rss_LVD'
-    #ARGUMENTS.scenario = 'Rss_LVDAD'
+    ARGUMENTS.scenario = 'Rss_LVDAD'
     #ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
     #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################

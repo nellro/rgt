@@ -7,7 +7,7 @@ class RssBasicAgent(BasicAgent):
 	def __init__(self, vehicle, target_speed, rss_params):
 		
 		super(RssBasicAgent, self).__init__(vehicle, target_speed)
-
+		print(rss_params)
 		self._rss_sensor = RssSensor(vehicle, rss_params)
 		self._restrictor = carla.RssRestrictor()
 		self._physics_control_static = vehicle.get_physics_control()
@@ -23,7 +23,7 @@ class RssBasicAgent(BasicAgent):
 				#carla.VehiclePhysicsControl()
 				vehicle_control_rss = self._restrictor.restrictVehicleControl(control, 
 																			  rss_restriction, 
-																			  self._rss_sensor.ego_velocity, 
+																			  self._rss_sensor.ego_dynamics_on_route.route_velocity, 
 																			  self._physics_control_static)
 				#if not (control == vehicle_control_rss):
 				#	print('RSS restrictor is ON: brake=%.3f, steer=%.3f' % (vehicle_control_rss.brake, vehicle_control_rss.steer))

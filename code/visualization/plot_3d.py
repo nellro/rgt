@@ -11,7 +11,7 @@ from matplotlib import cm
 ################################################
 # PARAMETERS (set it up YO-self)
 ################################################
-FOLDER_PATH = '/home/user/alena/rgt/res/res-int'
+FOLDER_PATH = '/home/user/Downloads/pov_unprotected_left'
 #
 search_name_x = 'lon accel max'
 search_name_y = 'response time'

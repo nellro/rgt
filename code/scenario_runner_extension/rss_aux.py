@@ -86,6 +86,10 @@ class RssSensor(object):
         self._parent = parent_actor
         self.timestamp = None
         self.response_valid = False
+        self.proper_response = None
+        self.acceleration_restriction = None
+        self.individual_rss_states = None
+        self.ego_dynamics_on_route = None
         self.lon_response = None
         self.lat_response_right = None
         self.lat_response_left = None
@@ -106,7 +110,9 @@ class RssSensor(object):
         weak_self = weakref.ref(self)
         self.sensor.visualize_results = True
         self.sensor.listen(lambda event: RssSensor._on_rss_response(weak_self, event))
-        
+        print ("RSS Sensor:")
+        print(dir(self.sensor))
+
         def set_parameters(rss_dynamics, rss_params):
             for key, value in rss_params.items(): 
                 if (key == 'alpha_lon_accel_max'):
@@ -129,21 +135,23 @@ class RssSensor(object):
                     print('WRONG RSS PARAM LABEL')
                     exit()
             return rss_dynamics
-
+        
         rss_dynamics = set_parameters(self.sensor.ego_vehicle_dynamics, self.rss_params)
         self.sensor.ego_vehicle_dynamics = rss_dynamics
         print_dynamics(self.sensor.ego_vehicle_dynamics)
 
     @staticmethod
     def _on_rss_response(weak_self, response):
+        
         self = weak_self()
         if not self:
             return
         self.timestamp = response.timestamp
         self.response_valid = response.response_valid
-        self.lon_response = response.longitudinal_response
-        self.lat_response_right = response.lateral_response_right
-        self.lat_response_left = response.lateral_response_left
+        self.proper_response = response.proper_response
+        self.lon_response = self.proper_response.longitudinal_response
+        self.lat_response_right = self.proper_response.lateral_response_right
+        self.lat_response_left = self.proper_response.lateral_response_left
         self.acceleration_restriction = response.acceleration_restriction
-        self.ego_velocity = response.ego_velocity
+        self.ego_dynamics_on_route = response.ego_dynamics_on_route
 
