@@ -151,7 +151,7 @@ def runFunc(compute_objective, currentSamples, initSpace, nruns, num_simult_runs
                     writer.writerow(val)
 
     
-    saveToFile(0, locals(), RES_FOLDER, 'wb')
+    saveToFile(0, locals(), RES_FOLDER, 'w')
     
     tsched = 100.
     for i in range(nruns):

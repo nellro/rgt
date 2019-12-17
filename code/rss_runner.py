@@ -4,56 +4,34 @@ import traceback
 import argparse
 from argparse import RawTextHelpFormatter
 from datetime import datetime
-import importlib
-import inspect
-
 import carla
-import numpy as np
 import sys
 import os
+import time
 
-from tools import dist_aux
-from tools import other_aux
+sys.path.append(os.getenv('ROOT_SCENARIO_RUNNER'))
+from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
+from srunner.scenariomanager.scenario_manager import ScenarioManager
+from srunner.tools.scenario_config_parser import ScenarioConfigurationParser
+#
 from tools import annealing
 from tools import robustness
 
-sys.path.append(os.getenv('ROOT_SCENARIO_RUNNER'))
-from scenario_runner_extension.rss_aux import RssParams
-from scenario_runner_extension.rss_follow_leading_vehicle import RssFollowLeadingVehicle
+from scenario_runner_extension.rss_aux import defineRssParams
+from scenario_runner_extension.rss_aux import RssParamsInit
+from scenario_runner_extension.rss_config_parser import parse_rss_scenario_configuration 
 
-RES_FOLDER = '../results'
+from scenarios.rss_opposite_vehicle_taking_priority import RssOppositeVehicleRunningRedLight
+from scenarios.rss_lvdad import RssLVDAD
+from scenarios.rss_follow_leading_vehicle import RssFollowLeadingVehicle
+from scenarios.rss_pov_unprotected_left import RssPovUnprotectedLeft
+
+RES_FOLDER = '../results-' + time.strftime("%d-%H-%M-%S")
 if not os.path.exists(RES_FOLDER):
     os.makedirs(RES_FOLDER)
-import time
 TRAJ_FILENAME = os.path.join(RES_FOLDER, 'trajectory.csv')
-ROB_FILENAME = os.path.join(RES_FOLDER, ('rob-'+time.strftime("%d-%H-%M-%S")+'.csv'))
 
 
-from srunner.scenariomanager.carla_data_provider import *
-from srunner.scenariomanager.scenario_manager import ScenarioManager
-from srunner.scenarios.background_activity import *
-from srunner.scenarios.control_loss import *
-from srunner.scenarios.follow_leading_vehicle import *
-from srunner.scenarios.maneuver_opposite_direction import *
-from srunner.scenarios.master_scenario import *
-from srunner.scenarios.no_signal_junction_crossing import *
-from srunner.scenarios.object_crash_intersection import *
-from srunner.scenarios.object_crash_vehicle import *
-from srunner.scenarios.opposite_vehicle_taking_priority import *
-from srunner.scenarios.other_leading_vehicle import *
-from srunner.scenarios.signalized_junction_left_turn import *
-from srunner.scenarios.signalized_junction_right_turn import *
-from srunner.scenarios.basic_scenario import BasicScenario
-from srunner.tools.config_parser import *
-
-from srunner.scenarios.follow_leading_vehicle import FollowLeadingVehicle
-import math
-
-
-def get_transform(vehicle_location, angle, d=6.4):
-    a = math.radians(angle)
-    location = carla.Location(d * math.cos(a), d * math.sin(a), 2.0) + vehicle_location
-    return carla.Transform(location, carla.Rotation(yaw=180 + angle, pitch=-15))
 
 class ScenarioRunner(object):
 
@@ -78,7 +56,6 @@ class ScenarioRunner(object):
 
     def __init__(self, args):
         self.filename_traj = args.filename_traj
-        self.filename_rob = args.filename_rob
         """
         Setup CARLA client and world
         Setup ScenarioManager
@@ -112,6 +89,16 @@ class ScenarioRunner(object):
         if self.world is not None:
             del self.world
 
+    def get_scenario_class_or_fail(self, scenario):
+        """
+        Get scenario class by scenario name
+        If scenario is not supported or not found, exit script
+        """
+        if scenario in globals():
+            return globals()[scenario]
+        print("Scenario '{}' not supported ... Exiting".format(scenario))
+        sys.exit(-1)
+
     def cleanup(self, ego=False):
         """
         Remove and destroy all actors
@@ -129,6 +116,11 @@ class ScenarioRunner(object):
                     self.ego_vehicles[i].destroy()
                 self.ego_vehicles[i] = None
         self.ego_vehicles = []
+
+    def prepare_camera(self, config):
+        spectator = self.world.get_spectator()
+        spectator.set_transform(config.camera.transform)
+
 
     def prepare_ego_vehicles(self, config, wait_for_ego_vehicles=False):
         """
@@ -228,24 +220,20 @@ class ScenarioRunner(object):
         self.cleanup()
 
 
-    def simulate(self, config, args, x):
-        rss_params = RssParams(x)
-        print(rss_params)  
-        file = open(args.filename_traj, 'wb')  
+    def simulate(self, config, args, rss_params):
+        file = open(self.filename_traj, 'w')  
         file.close()
-
         result = False
+        scenario_class = self.get_scenario_class_or_fail(config.type)
+
         while not result:
             try:
                 self.load_world(args, config.town)
                 self.manager = ScenarioManager(self.world, args.debug)   
                 CarlaActorPool.set_world(self.world)
                 self.prepare_ego_vehicles(config)
-
-                spectator = self.world.get_spectator()
-                spectator.set_transform(get_transform(self.ego_vehicles[0].get_location(), 180))
-
-                scenario = RssFollowLeadingVehicle(self.world, rss_params, self.filename_traj, self.ego_vehicles, config, args.randomize, args.debug)
+                self.prepare_camera(config)    
+                scenario = scenario_class(self.world, rss_params, self.filename_traj, self.ego_vehicles, config, args.randomize, args.debug)
                 result = True
             except Exception as exception:
                 print("The scenario cannot be loaded")
@@ -254,108 +242,57 @@ class ScenarioRunner(object):
                 self.cleanup()
                 pass
         self.load_and_run_scenario(args, config, scenario)
-        # rob = robustness.getRobustness(args.filename_traj)
 
-        # other_aux.write2csv(args.filename_rob, rob)
+        # rob = robustness.getRobustness(self.filename_traj)
+
         # return rob
 
 
-
-    def run(self, args):
-        scenario_config_file = find_scenario_config(args.scenario, args.configFile) # xml file
-        scenario_configurations = parse_scenario_configuration(scenario_config_file, args.scenario)
-        config = scenario_configurations[0] # since we work only with one scenario!
+    def run(self, args): 
+        scenario_config_file = ScenarioConfigurationParser.find_scenario_config(args.scenario, args.configFile) # xml file 
 
         num_simult_runs = 1
-        nruns = 0
+
+        nruns = 3000
         ####################################
-        # 0 
-        alpha_lon_accel_max = 16.62885703232409
-        alpha_lon_accel_max_min = 0.0
-        alpha_lon_accel_max_max = 20.0
-        # 1
-        alpha_lon_break_max = 64.4225632047746
-        alpha_lon_break_max_min = 8
-        alpha_lon_break_max_max = 100.0
-        # 2
-        #alpha_lon_brake_min = 4.0
-        #alpha_lon_brake_min = 100.0
-        #alpha_lon_brake_min_min = 0.0
-        #alpha_lon_brake_min_max = 6.0
-        
-        # 3
-        #alpha_lon_brake_min_correct = 3.0
-        #alpha_lon_brake_min_correct_min = 0.0
-        #alpha_lon_brake_min_correct_max = 3.5
-        # 4
-        #alpha_lat_accel_max = 0.2
-        #alpha_lat_accel_max_min = 0.0
-        #alpha_lat_accel_max_max = 2
-        # 5
-        #alpha_lat_brake_min = 0.8
-        #alpha_lat_brake_min_min = 0.0
-        #alpha_lat_brake_min_max = 2
-        # 6
-        #lateral_fluctuation_margin = 0.0
-        #lateral_fluctuation_margin_min = 0.0
-        #lateral_fluctuation_margin_max = 0.01
-        # 7
-        #response_time = 0.01
-        #response_time_min = 0.01
-        #response_time_max = 10.0
 
-        #################################
-        #true:
+        search_names = ['alpha_lon_accel_max', 'response_time']
         alpha_lon_accel_max = 3.5
-        alpha_lon_accel_max_max = 20.0
-        alpha_lon_accel_max_min = 0.0
-
-        alpha_lon_break_max = 8.0
-        alpha_lon_break_max_max = 8.0
-        alpha_lon_break_max_min = 0.0
-        
-
-        alpha_lon_brake_min = 4.0
-        alpha_lon_brake_min_max = 15.0
-        alpha_lon_brake_min_min = 0.0
-
-        alpha_lon_brake_min_correct = 3.0
-        
-        alpha_lat_accel_max = 0.2
-        alpha_lat_brake_min = 0.8
-        
-        lateral_fluctuation_margin = 0.0
         response_time = 1.0
         ####################################
-        x0 = np.array([alpha_lon_accel_max,
-                       alpha_lon_break_max,
-                       alpha_lon_brake_min,
-                       alpha_lon_brake_min_correct,
-                       alpha_lat_accel_max,
-                       alpha_lat_brake_min,
-                       lateral_fluctuation_margin,
-                       response_time])
-        # X0 =[]
-        # for _ in range(num_simult_runs):
-        #     X0.append(x0)
+        x0, searchSpace = RssParamsInit().getInit(search_names,
+                                                   alpha_lon_accel_max = alpha_lon_accel_max,
+                                                   response_time = response_time)
+        print('X0 = %s' % x0)
+        print('SearchSpace = %s\n' % searchSpace)
+        #-------------------------------
+        X0 =[]
+        for _ in range(num_simult_runs):
+            X0.append(x0)
 
-        ####################################
-        # searchSpace = np.array([[alpha_lon_accel_max_min, alpha_lon_accel_max_max], 
-        #                         [alpha_lon_break_max_min, alpha_lon_break_max_max]])
-                                #[alpha_lon_brake_min_min, alpha_lon_brake_min_max],
-                                #[alpha_lon_brake_min_correct_min, alpha_lon_brake_min_correct_max],
-                                #[alpha_lat_accel_max_min, alpha_lat_accel_max_max],
-                                #[alpha_lat_brake_min_min, alpha_lat_brake_min_max],
-                                #[lateral_fluctuation_margin_min, lateral_fluctuation_margin_max],
-                                #[response_time_min, response_time_max]])
 
+        ####################################        
         def ff(x):
-            return self.simulate(config, args, x)
+            scenario_configurations = parse_rss_scenario_configuration(scenario_config_file, args.scenario)
+            config = scenario_configurations[0] # since we work only with one scenario!
 
-        ff(x0)
-        # print(y)
+            rss_params = defineRssParams(x, search_names)
+            rss_params['alpha_lon_brake_min_correct'] = 0.1
+            print('RSS params: %s' % rss_params)
 
-        # best_x_history, best_f_history, x_history, f_history, accept_x_history, accept_flags = annealing.runFunc(ff, X0, searchSpace, nruns, num_simult_runs, RES_FOLDER) 
+            return self.simulate(config, args, rss_params)
+
+        # reproduce trajs
+        '''
+        for i in range(10):
+            self.filename_traj = os.path.join(RES_FOLDER, ('trajectory'+str(i)+'.csv'))
+            ff(x0)
+        '''
+
+        #ff(x0)
+
+        # maybe comment this
+        best_x_history, best_f_history, x_history, f_history, accept_x_history, accept_flags = annealing.runFunc(ff, X0, searchSpace, nruns, num_simult_runs, RES_FOLDER) 
 
 
 
@@ -376,11 +313,45 @@ if __name__ == '__main__':
     PARSER.add_argument('--configFile', default='', help='Provide an additional scenario configuration file (*.xml)')
     PARSER.add_argument('--randomize', action="store_true", help='Scenario parameters are randomized')
     ARGUMENTS = PARSER.parse_args()
-
-    ARGUMENTS.filename_traj = TRAJ_FILENAME
-    ARGUMENTS.filename_rob = ROB_FILENAME
-    ARGUMENTS.scenario = 'FollowLeadingVehicle_1'
     ARGUMENTS.reloadWorld = True
+    ARGUMENTS.filename_traj = TRAJ_FILENAME
+    ARGUMENTS.configFile = os.path.join(os.getcwd(), 'rss.xml') # do not change this line
+    ###############################################################
+    # CHOOSE THE SCENARIO:
+    ###############################################################
+    # 1. Rss_LVS: Leading Vehicle Stopped 
+    #    (One of the Automatic Emergency breaking scenarios (AEB))
+    #       EV velocity:  40.2 km/h = 11.17 m/s
+    #       POV velocity: 0 km/h    = 0 m/s
+    # 2. Rss_LVM1: Leading Vehicle Moving, scenario #1 
+    #    (One of the Automatic Emergency breaking scenarios (AEB))
+    #       EV velocity:  40.2 km/h = 11.17 m/s
+    #       POV velocity: 16.1 km/h = 4.47 m/s
+    # 3. Rss_LVM2: Leading Vehicle Moving, scenario #2 
+    #    (One of the Automatic Emergency breaking scenarios (AEB))
+    #       EV velocity:  72.4 km/h = 20.1 m/s
+    #       POV velocity: 32.2 km/h = 8.9 m/s
+    # 4. Rss_LVD: Leading Vehicle Decelerating
+    #    (One of the Automatic Emergency breaking scenarios (AEB))
+    #       EV velocity:  56.3 km/h = 15.6 m/s
+    #       POV velocity: 56.3 km/h = 15.6 m/s
+    # 5. Rss_LVDAD: Leading Vehicle Decelerates, Accelerates, then Decelerates
+    #    (Traffic Jam Assist scenarios (TJA))
+    #       EV velocity:  40.2 km/h = 11.17 m/s
+    #       POV velocity: 40.2 km/h = 11.17 m/s
+    # 6. Rss_OppositeVehicleRunningRedLight
+    #    (Intersection scenarios)
+    # 7. Rss_PovUnprotectedLeft
+    #    (Intersection scenarios)
+    ###############################################################
+    ARGUMENTS.scenario = 'Rss_LVS'
+    #ARGUMENTS.scenario = 'Rss_LVM1'
+    #ARGUMENTS.scenario = 'Rss_LVM2'
+    #ARGUMENTS.scenario = 'Rss_LVD'
+    #ARGUMENTS.scenario = 'Rss_LVDAD'
+    #ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
+    #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
+    ###############################################################
 
     SCENARIORUNNER = None
     try:
