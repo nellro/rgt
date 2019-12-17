@@ -9,7 +9,8 @@ import sys
 import os
 import time
 
-sys.path.append(os.getenv('ROOT_SCENARIO_RUNNER'))
+# sys.path.append(os.getenv('ROOT_SCENARIO_RUNNER'))
+sys.path.append("/home/user/Projects/carla-simulator/scenario_runner")
 from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
 from srunner.scenariomanager.scenario_manager import ScenarioManager
 from srunner.tools.scenario_config_parser import ScenarioConfigurationParser

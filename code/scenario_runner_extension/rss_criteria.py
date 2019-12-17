@@ -1,9 +1,6 @@
 import py_trees
 from tools import dist_aux
 from tools import other_aux
-<<<<<<< HEAD
-from srunner.scenariomanager.atomic_scenario_criteria import Criterion
-import math
 from srunner.scenariomanager.scenarioatomics.atomic_criteria import Criterion
 import math
 
