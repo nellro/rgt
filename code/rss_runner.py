@@ -165,6 +165,7 @@ class ScenarioRunner(object):
         """
 
         current_time = str(datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+        print("current time", current_time)
         junit_filename = None
         config_name = config.name
         if args.outputDir != '':
@@ -254,13 +255,34 @@ class ScenarioRunner(object):
         nruns = 3000
         ####################################
 
-        search_names = ['alpha_lon_accel_max', 'response_time']
+
+        search_names = ['alpha_lon_accel_max', 'alpha_lon_brake_max', 'alpha_lon_brake_min', 'response_time']
+
+        # extra params for lateral and opposite directions :
+        # 'alpha_lat_brake_min', 'lateral_fluctuation_margin', 'alpha_lon_brake_min_correct', 'alpha_lat_accel_max'
+
+        ## initial values ?
         alpha_lon_accel_max = 3.5
         response_time = 1.0
+        alpha_lon_brake_max = 6.0
+        alpha_lon_brake_min = 3.5 
+
+
         ####################################
         x0, searchSpace = RssParamsInit().getInit(search_names,
                                                    alpha_lon_accel_max = alpha_lon_accel_max,
-                                                   response_time = response_time)
+                                                   response_time = response_time, 
+                                                   alpha_lon_brake_max = alpha_lon_brake_max, 
+                                                   alpha_lon_brake_min = alpha_lon_brake_min)
+
+
+        # search_names = ['alpha_lon_accel_max', 'response_time']
+        # alpha_lon_accel_max = 3.5
+        # response_time = 1.0
+        # ####################################
+        # x0, searchSpace = RssParamsInit().getInit(search_names,
+        #                                            alpha_lon_accel_max = alpha_lon_accel_max,
+        #                                            response_time = response_time)
         print('X0 = %s' % x0)
         print('SearchSpace = %s\n' % searchSpace)
         #-------------------------------
@@ -340,10 +362,10 @@ if __name__ == '__main__':
     #    (Intersection scenarios)
     ###############################################################
     #ARGUMENTS.scenario = 'Rss_LVS'
-    #ARGUMENTS.scenario = 'Rss_LVM1'
+    ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     #ARGUMENTS.scenario = 'Rss_LVD'
-    ARGUMENTS.scenario = 'Rss_LVDAD'
+    #ARGUMENTS.scenario = 'Rss_LVDAD'
     #ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
     #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################
