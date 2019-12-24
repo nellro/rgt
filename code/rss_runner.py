@@ -26,10 +26,6 @@ from scenarios.rss_lvdad import RssLVDAD
 from scenarios.rss_follow_leading_vehicle import RssFollowLeadingVehicle
 from scenarios.rss_pov_unprotected_left import RssPovUnprotectedLeft
 
-RES_FOLDER = '../results-' + time.strftime("%d-%H-%M-%S")
-if not os.path.exists(RES_FOLDER):
-    os.makedirs(RES_FOLDER)
-TRAJ_FILENAME = os.path.join(RES_FOLDER, 'trajectory.csv')
 
 
 
@@ -331,8 +327,9 @@ if __name__ == '__main__':
     PARSER.add_argument('--randomize', action="store_true", help='Scenario parameters are randomized')
     ARGUMENTS = PARSER.parse_args()
     ARGUMENTS.reloadWorld = True
-    ARGUMENTS.filename_traj = TRAJ_FILENAME
     ARGUMENTS.configFile = os.path.join(os.getcwd(), 'rss.xml') # do not change this line
+    
+
     ###############################################################
     # CHOOSE THE SCENARIO:
     ###############################################################
@@ -362,13 +359,21 @@ if __name__ == '__main__':
     #    (Intersection scenarios)
     ###############################################################
     #ARGUMENTS.scenario = 'Rss_LVS'
-    ARGUMENTS.scenario = 'Rss_LVM1'
+    #ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     #ARGUMENTS.scenario = 'Rss_LVD'
-    #ARGUMENTS.scenario = 'Rss_LVDAD'
+    ARGUMENTS.scenario = 'Rss_LVDAD'
     #ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
     #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################
+
+    RES_FOLDER = '../results-' + ARGUMENTS.scenario + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+    if not os.path.exists(RES_FOLDER):
+        os.makedirs(RES_FOLDER)
+    TRAJ_FILENAME = os.path.join(RES_FOLDER, 'trajectory.csv')
+
+    ARGUMENTS.filename_traj = TRAJ_FILENAME
+
 
     SCENARIORUNNER = None
     try:
