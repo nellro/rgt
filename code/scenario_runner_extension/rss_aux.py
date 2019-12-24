@@ -30,13 +30,13 @@ class RssParamsInit:
         self.alpha_lon_accel_max_max = 10.0
         # 1
         self.alpha_lon_brake_max_min = 6
-        self.alpha_lon_brake_max_max = 20.0
+        self.alpha_lon_brake_max_max = 15.0
         # 2
-        self.alpha_lon_brake_min_min = 3.5
+        self.alpha_lon_brake_min_min = 2.0
         self.alpha_lon_brake_min_max = 6.0
         # 3
         self.alpha_lon_brake_min_correct_min = 0.0
-        self.alpha_lon_brake_min_correct_max = 3.5
+        self.alpha_lon_brake_min_correct_max = 2.0
         # 4
         self.alpha_lat_accel_max_min = 0.0
         self.alpha_lat_accel_max_max = 2.0
