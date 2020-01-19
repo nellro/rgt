@@ -41,11 +41,11 @@ class RssParamsInit:
         self.alpha_lat_accel_max_min = 0.0
         self.alpha_lat_accel_max_max = 2.0
         # 5
-        self.alpha_lat_brake_min_min = 0.0
-        self.alpha_lat_brake_min_max = 2.0
+        self.alpha_lat_brake_min_min = 0.0001
+        self.alpha_lat_brake_min_max = 3.0
         # 6
-        self.lateral_fluctuation_margin_min = 0.0
-        self.lateral_fluctuation_margin_max = 0.001
+        self.lateral_fluctuation_margin_min = 0.0001
+        self.lateral_fluctuation_margin_max = 0.5
         # 7
         self.response_time_min = 0.05
         self.response_time_max = 5.0
@@ -110,6 +110,7 @@ class RssSensor(object):
         weak_self = weakref.ref(self)
         self.sensor.visualize_results = True
         self.sensor.listen(lambda event: RssSensor._on_rss_response(weak_self, event))
+        self.sensor.routing_target = carla.Transform(carla.Location(x=88, y=74))
         print ("RSS Sensor:")
         print(dir(self.sensor))
 

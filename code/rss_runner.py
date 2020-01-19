@@ -252,24 +252,30 @@ class ScenarioRunner(object):
         ####################################
 
 
-        search_names = ['alpha_lon_accel_max', 'alpha_lon_brake_max', 'alpha_lon_brake_min', 'response_time']
+        search_names = ['alpha_lon_accel_max', 'alpha_lon_brake_max', 'alpha_lon_brake_min', 'response_time', 
+        'alpha_lat_accel_max', 'alpha_lat_brake_min', 'lateral_fluctuation_margin']
 
         # extra params for lateral and opposite directions :
         # 'alpha_lat_brake_min', 'lateral_fluctuation_margin', 'alpha_lon_brake_min_correct', 'alpha_lat_accel_max'
 
         ## initial values ?
         alpha_lon_accel_max = 3.5
-        response_time = 1.0
+        response_time       = 1.0
         alpha_lon_brake_max = 6.0
         alpha_lon_brake_min = 3.5 
-
+        alpha_lat_accel_max = 0.1
+        alpha_lat_brake_min = 0.1
+        lateral_fluctuation_margin = 0.1
 
         ####################################
         x0, searchSpace = RssParamsInit().getInit(search_names,
                                                    alpha_lon_accel_max = alpha_lon_accel_max,
                                                    response_time = response_time, 
                                                    alpha_lon_brake_max = alpha_lon_brake_max, 
-                                                   alpha_lon_brake_min = alpha_lon_brake_min)
+                                                   alpha_lon_brake_min = alpha_lon_brake_min, 
+                                                   alpha_lat_accel_max = alpha_lat_accel_max, 
+                                                   alpha_lat_brake_min = alpha_lat_brake_min,
+                                                   lateral_fluctuation_margin = lateral_fluctuation_margin)
 
 
         # search_names = ['alpha_lon_accel_max', 'response_time']
@@ -362,8 +368,8 @@ if __name__ == '__main__':
     #ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     #ARGUMENTS.scenario = 'Rss_LVD'
-    ARGUMENTS.scenario = 'Rss_LVDAD'
-    #ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
+    #ARGUMENTS.scenario = 'Rss_LVDAD'
+    ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
     #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################
 
