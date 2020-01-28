@@ -1,9 +1,0 @@
-,robustness,alpha_lon_accel_max,alpha_lon_brake_max,alpha_lon_brake_min,response_time,alpha_lat_accel_max,alpha_lat_brake_min,lateral_fluctuation_margin
-count,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0
-mean,,,,,,,,
-std,,,,,,,,
-min,,,,,,,,
-25%,,,,,,,,
-50%,,,,,,,,
-75%,,,,,,,,
-max,,,,,,,,
