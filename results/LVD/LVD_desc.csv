@@ -7,4 +7,4 @@ response_time,0.07062781306948886,1.7710338830669514
 alpha_lat_accel_max,0.2,0.2
 alpha_lat_brake_min,0.8,0.8
 lateral_fluctuation_margin,0.0,0.0
-alpha_lon_brake_min_correct,3.0,3.0
+alpha_lon_brake_min_correct,2.0,2.0

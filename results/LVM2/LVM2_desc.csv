@@ -1,4 +1,4 @@
-,4473,1406
+,570,4215
 robustness,0.15018796632437936,24.87347036903326
 alpha_lon_accel_max,0.5263726058333528,2.3294259606027348
 alpha_lon_brake_max,7.0703102810790295,7.319613869109584
@@ -7,4 +7,4 @@ response_time,0.13049000432593816,3.5571425929557066
 alpha_lat_accel_max,0.2,0.2
 alpha_lat_brake_min,0.8,0.8
 lateral_fluctuation_margin,0.0,0.0
-alpha_lon_brake_min_correct,3.0,3.0
+alpha_lon_brake_min_correct,2.0,2.0
