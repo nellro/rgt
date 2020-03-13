@@ -65,16 +65,16 @@ class RssParamsInit:
 def print_dynamics(rss_dynamics):
             print('************************')
             print('RSS DYANMICS:')
-            print('Lon accel max: %.3f' % rss_dynamics.alpha_lon.accel_max.value)
-            print('Lon brake max: %.3f' % rss_dynamics.alpha_lon.brake_max.value)
-            print('Lon brake min: %.3f' % rss_dynamics.alpha_lon.brake_min.value)
-            print('Lon brake min correct: %.3f' % rss_dynamics.alpha_lon.brake_min_correct.value)
+            print('Lon accel max: %.3f' % rss_dynamics.alphaLon.accelMax)
+            print('Lon brake max: %.3f' % rss_dynamics.alphaLon.brakeMax)
+            print('Lon brake min: %.3f' % rss_dynamics.alphaLon.brakeMin)
+            print('Lon brake min correct: %.3f' % rss_dynamics.alphaLon.brakeMinCorrect)
             #
-            print('Lat accel max: %.3f' % rss_dynamics.alpha_lat.accel_max.value)
-            print('Lat brake min: %.3f' % rss_dynamics.alpha_lat.brake_min.value)
+            print('Lat accel max: %.3f' % rss_dynamics.alphaLat.accelMax)
+            print('Lat brake min: %.3f' % rss_dynamics.alphaLat.brakeMin)
             #
-            print('Lat fluct mar: %.3f' % rss_dynamics.lateral_fluctuation_margin.value)
-            print('Response time: %.3f' % rss_dynamics.response_time.value)
+            print('Lat fluct mar: %.3f' % rss_dynamics.lateralFluctuationMargin)
+            print('Response time: %.3f' % rss_dynamics.responseTime)
             print('************************')
             
 # ==============================================================================
@@ -110,28 +110,36 @@ class RssSensor(object):
         weak_self = weakref.ref(self)
         self.sensor.visualize_results = True
         self.sensor.listen(lambda event: RssSensor._on_rss_response(weak_self, event))
-        self.sensor.routing_target = carla.Transform(carla.Location(x=88, y=74))
+        self.sensor.routing_target = carla.Transform(carla.Location(x=335, y=153))
         print ("RSS Sensor:")
         print(dir(self.sensor))
 
         def set_parameters(rss_dynamics, rss_params):
             for key, value in rss_params.items(): 
                 if (key == 'alpha_lon_accel_max'):
-                    rss_dynamics.alpha_lon.accel_max = carla.Acceleration(value)
+                    # rss_dynamics.alpha_lon.accel_max = carla.Acceleration(value)
+                    rss_dynamics.alphaLon.accelMax = value
                 elif (key == 'alpha_lon_brake_max'):
-                    rss_dynamics.alpha_lon.brake_max = carla.Acceleration(value)
+                    # rss_dynamics.alpha_lon.brake_max = carla.Acceleration(value)
+                    rss_dynamics.alphaLon.brakeMax = value
                 elif (key == 'alpha_lon_brake_min'):
-                    rss_dynamics.alpha_lon.brake_min = carla.Acceleration(value)
+                    # rss_dynamics.alpha_lon.brake_min = carla.Acceleration(value)
+                    rss_dynamics.alphaLon.brakeMin = value
                 elif (key == 'alpha_lon_brake_min_correct'):
-                    rss_dynamics.alpha_lon.brake_min_correct = carla.Acceleration(value)
+                    # rss_dynamics.alpha_lon.brake_min_correct = carla.Acceleration(value)
+                    rss_dynamics.alphaLon.brakeMinCorrect = value
                 elif (key == 'alpha_lat_accel_max'):
-                    rss_dynamics.alpha_lat.accel_max = carla.Acceleration(value)
+                    # rss_dynamics.alpha_lat.accel_max = carla.Acceleration(value)
+                    rss_dynamics.alphaLat.accelMax = value
                 elif (key =='alpha_lat_brake_min'):
-                    rss_dynamics.alpha_lat.brake_min = carla.Acceleration(value)
+                    # rss_dynamics.alpha_lat.brake_min = carla.Acceleration(value)
+                    rss_dynamics.alphaLat.brakeMin = value
                 elif (key =='lateral_fluctuation_margin'):
-                    rss_dynamics.lateral_fluctuation_margin = carla.Distance(value)
+                    # rss_dynamics.lateral_fluctuation_margin = carla.Distance(value)
+                    rss_dynamics.lateralFluctuationMargin = value
                 elif (key =='response_time'):
-                    rss_dynamics.response_time = carla.Duration(value)     
+                    # rss_dynamics.response_time = carla.Duration(value)     
+                    rss_dynamics.responseTime = value     
                 else:
                     print('WRONG RSS PARAM LABEL')
                     exit()
@@ -150,9 +158,9 @@ class RssSensor(object):
         self.timestamp = response.timestamp
         self.response_valid = response.response_valid
         self.proper_response = response.proper_response
-        self.lon_response = self.proper_response.longitudinal_response
-        self.lat_response_right = self.proper_response.lateral_response_right
-        self.lat_response_left = self.proper_response.lateral_response_left
+        # self.lon_response = self.proper_response.longitudinal_response
+        # self.lat_response_right = self.proper_response.lateral_response_right
+        # self.lat_response_left = self.proper_response.lateral_response_left
         self.acceleration_restriction = response.acceleration_restriction
         self.ego_dynamics_on_route = response.ego_dynamics_on_route
 

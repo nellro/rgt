@@ -248,12 +248,12 @@ class ScenarioRunner(object):
         scenario_config_file = ScenarioConfigurationParser.find_scenario_config(args.scenario, args.configFile) # xml file 
 
         num_simult_runs = 1
-        nruns = 3000
+        nruns = 1
         ####################################
 
 
         search_names = ['alpha_lon_accel_max', 'alpha_lon_brake_max', 'alpha_lon_brake_min', 'response_time', 
-        'alpha_lat_accel_max', 'alpha_lat_brake_min', 'lateral_fluctuation_margin']
+        'alpha_lat_accel_max', 'alpha_lat_brake_min', 'lateral_fluctuation_margin']#, 'alpha_lon_brake_min_correct']
 
         # extra params for lateral and opposite directions :
         # 'alpha_lat_brake_min', 'lateral_fluctuation_margin', 'alpha_lon_brake_min_correct', 'alpha_lat_accel_max'
@@ -266,6 +266,16 @@ class ScenarioRunner(object):
         alpha_lat_accel_max = 0.1
         alpha_lat_brake_min = 0.1
         lateral_fluctuation_margin = 0.1
+        alpha_lon_brake_min_correct = 1.0
+
+        # alpha_lon_accel_max = 4.01
+        # response_time       = 0.53
+        # alpha_lon_brake_max = 8.03
+        # alpha_lon_brake_min = 4.64 
+        # alpha_lat_accel_max = 0.43
+        # alpha_lat_brake_min = 0.96
+        # lateral_fluctuation_margin = 0.07
+        # alpha_lon_brake_min_correct = 1.76
 
         ####################################
         x0, searchSpace = RssParamsInit().getInit(search_names,
@@ -276,6 +286,7 @@ class ScenarioRunner(object):
                                                    alpha_lat_accel_max = alpha_lat_accel_max, 
                                                    alpha_lat_brake_min = alpha_lat_brake_min,
                                                    lateral_fluctuation_margin = lateral_fluctuation_margin)
+        # ,                                            alpha_lon_brake_min_correct = alpha_lon_brake_min_correct)
 
 
         # search_names = ['alpha_lon_accel_max', 'response_time']
@@ -368,9 +379,9 @@ if __name__ == '__main__':
     #ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     #ARGUMENTS.scenario = 'Rss_LVD'
-    #ARGUMENTS.scenario = 'Rss_LVDAD'
-    ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
-    #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
+    ARGUMENTS.scenario = 'Rss_LVDAD'
+    # ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
+    # ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################
 
     RES_FOLDER = '../results-' + ARGUMENTS.scenario + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
