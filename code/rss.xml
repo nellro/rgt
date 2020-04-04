@@ -32,7 +32,7 @@
     </scenario>
     <scenario name="Rss_OppositeVehicleRunningRedLight" type="RssOppositeVehicleRunningRedLight" town="Town01">
         <ego_vehicle x="126.4" y="55.2" z="1" yaw="180" target_speed="10" model="vehicle.audi.a2" />
-        <other_actor x="93" y="81" z="1" yaw="270" target_speed="10" model="vehicle.tesla.model3" />
+        <other_actor x="93" y="81" z="1" yaw="270" target_speed="10" model="vehicle.bmw.grandtourer" />
         <camera x="110.4" y="50" z="60" yaw="0" pitch="-90" />
     </scenario>
     <scenario name="Rss_PovUnprotectedLeft" type="RssPovUnprotectedLeft" town="Town01">

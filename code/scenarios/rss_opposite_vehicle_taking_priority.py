@@ -88,7 +88,6 @@ class RssOppositeVehicleRunningRedLight(OppositeVehicleRunningRedLight):
         # Generating waypoint list till next intersection
         wp_choice = target_waypoint.next(30.0)
         target_waypoint = wp_choice[0]
-            
 
         destination_location = target_waypoint.transform.location
         #print(destination_location)

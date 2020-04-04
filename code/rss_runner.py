@@ -9,8 +9,7 @@ import sys
 import os
 import time
 
-# sys.path.append(os.getenv('ROOT_SCENARIO_RUNNER'))
-sys.path.append("/home/user/Projects/carla-simulator/scenario_runner")
+sys.path.append(os.getenv('ROOT_SCENARIO_RUNNER'))
 from srunner.scenariomanager.carla_data_provider import CarlaActorPool, CarlaDataProvider
 from srunner.scenariomanager.scenario_manager import ScenarioManager
 from srunner.tools.scenario_config_parser import ScenarioConfigurationParser
@@ -27,10 +26,6 @@ from scenarios.rss_lvdad import RssLVDAD
 from scenarios.rss_follow_leading_vehicle import RssFollowLeadingVehicle
 from scenarios.rss_pov_unprotected_left import RssPovUnprotectedLeft
 
-RES_FOLDER = '../results-' + time.strftime("%d-%H-%M-%S")
-if not os.path.exists(RES_FOLDER):
-    os.makedirs(RES_FOLDER)
-TRAJ_FILENAME = os.path.join(RES_FOLDER, 'trajectory.csv')
 
 
 
@@ -166,6 +161,7 @@ class ScenarioRunner(object):
         """
 
         current_time = str(datetime.now().strftime('%Y-%m-%d-%H-%M-%S'))
+        print("current time", current_time)
         junit_filename = None
         config_name = config.name
         if args.outputDir != '':
@@ -243,33 +239,70 @@ class ScenarioRunner(object):
                 self.cleanup()
                 pass
         self.load_and_run_scenario(args, config, scenario)
+        rob = robustness.getRobustness(self.filename_traj)
 
-        # rob = robustness.getRobustness(self.filename_traj)
-
-        # return rob
+        return rob
 
 
     def run(self, args): 
         scenario_config_file = ScenarioConfigurationParser.find_scenario_config(args.scenario, args.configFile) # xml file 
 
         num_simult_runs = 1
-
-        nruns = 3000
+        nruns = 20
         ####################################
 
-        search_names = ['alpha_lon_accel_max', 'response_time']
+
+        search_names = ['alpha_lon_accel_max', 'alpha_lon_brake_max', 'alpha_lon_brake_min', 'response_time', 
+        'alpha_lat_accel_max', 'alpha_lat_brake_min', 'lateral_fluctuation_margin']#, 'alpha_lon_brake_min_correct']
+
+        # extra params for lateral and opposite directions :
+        # 'alpha_lat_brake_min', 'lateral_fluctuation_margin', 'alpha_lon_brake_min_correct', 'alpha_lat_accel_max'
+
+        ## initial values ?
         alpha_lon_accel_max = 3.5
-        response_time = 1.0
+        response_time       = 1.0
+        alpha_lon_brake_max = 6.0
+        alpha_lon_brake_min = 3.5 
+        alpha_lat_accel_max = 0.1
+        alpha_lat_brake_min = 0.1
+        lateral_fluctuation_margin = 0.1
+        alpha_lon_brake_min_correct = 1.0
+
+        # alpha_lon_accel_max = 4.01
+        # response_time       = 0.53
+        # alpha_lon_brake_max = 8.03
+        # alpha_lon_brake_min = 4.64 
+        # alpha_lat_accel_max = 0.43
+        # alpha_lat_brake_min = 0.96
+        # lateral_fluctuation_margin = 0.07
+        # alpha_lon_brake_min_correct = 1.76
+
         ####################################
         x0, searchSpace = RssParamsInit().getInit(search_names,
                                                    alpha_lon_accel_max = alpha_lon_accel_max,
-                                                   response_time = response_time)
+                                                   response_time = response_time, 
+                                                   alpha_lon_brake_max = alpha_lon_brake_max, 
+                                                   alpha_lon_brake_min = alpha_lon_brake_min, 
+                                                   alpha_lat_accel_max = alpha_lat_accel_max, 
+                                                   alpha_lat_brake_min = alpha_lat_brake_min,
+                                                   lateral_fluctuation_margin = lateral_fluctuation_margin)
+        # ,                                            alpha_lon_brake_min_correct = alpha_lon_brake_min_correct)
+
+
+        # search_names = ['alpha_lon_accel_max', 'response_time']
+        # alpha_lon_accel_max = 3.5
+        # response_time = 1.0
+        # ####################################
+        # x0, searchSpace = RssParamsInit().getInit(search_names,
+        #                                            alpha_lon_accel_max = alpha_lon_accel_max,
+        #                                            response_time = response_time)
         print('X0 = %s' % x0)
         print('SearchSpace = %s\n' % searchSpace)
         #-------------------------------
         X0 =[]
         for _ in range(num_simult_runs):
             X0.append(x0)
+        ####################################
 
 
         ####################################        
@@ -289,10 +322,6 @@ class ScenarioRunner(object):
             self.filename_traj = os.path.join(RES_FOLDER, ('trajectory'+str(i)+'.csv'))
             ff(x0)
         '''
-
-        #ff(x0)
-
-        # maybe comment this
         best_x_history, best_f_history, x_history, f_history, accept_x_history, accept_flags = annealing.runFunc(ff, X0, searchSpace, nruns, num_simult_runs, RES_FOLDER) 
 
 
@@ -315,8 +344,9 @@ if __name__ == '__main__':
     PARSER.add_argument('--randomize', action="store_true", help='Scenario parameters are randomized')
     ARGUMENTS = PARSER.parse_args()
     ARGUMENTS.reloadWorld = True
-    ARGUMENTS.filename_traj = TRAJ_FILENAME
     ARGUMENTS.configFile = os.path.join(os.getcwd(), 'rss.xml') # do not change this line
+    
+
     ###############################################################
     # CHOOSE THE SCENARIO:
     ###############################################################
@@ -345,14 +375,22 @@ if __name__ == '__main__':
     # 7. Rss_PovUnprotectedLeft
     #    (Intersection scenarios)
     ###############################################################
-    ARGUMENTS.scenario = 'Rss_LVS'
+    #ARGUMENTS.scenario = 'Rss_LVS'
     #ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     #ARGUMENTS.scenario = 'Rss_LVD'
-    #ARGUMENTS.scenario = 'Rss_LVDAD'
-    #ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
-    #ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
+    ARGUMENTS.scenario = 'Rss_LVDAD'
+    # ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
+    # ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################
+
+    RES_FOLDER = '../results-' + ARGUMENTS.scenario + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
+    if not os.path.exists(RES_FOLDER):
+        os.makedirs(RES_FOLDER)
+    TRAJ_FILENAME = os.path.join(RES_FOLDER, 'trajectory.csv')
+
+    ARGUMENTS.filename_traj = TRAJ_FILENAME
+
 
     SCENARIORUNNER = None
     try:
