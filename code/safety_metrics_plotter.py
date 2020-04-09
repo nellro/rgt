@@ -23,6 +23,20 @@ def _on_rss_response(response, safety_metrics_vector):
 
   # print("in listen type", len(safety_metrics_vector))
 
+def save_metrics_history(metrics_hist_dict, safety_metrics_vector):
+  active_situations = []
+  
+  for sm in safety_metrics_vector[-1]:
+    situation_id = sm.get_situation_id()
+    active_situations.append(situation_id)
+
+    if situation_id not in metrics_hist_dict:
+      metrics_hist_dict[situation_id] = []
+
+    metrics_hist_dict[situation_id].append(sm)
+
+  return active_situations
+
 
 # ==============================================================================
 # -- run_loop() ---------------------------------------------------------------
@@ -38,6 +52,7 @@ def run_loop(host='127.0.0.1', port=2000):
   world = None
 
   safety_metrics_vector = []
+  metrics_hist_dict = {}
 
   try:
     # First of all, we need to create the client that will send the requests
@@ -61,12 +76,12 @@ def run_loop(host='127.0.0.1', port=2000):
     fig, axs = plt.subplots(6, figsize=(9, 12))
     # safety_metrics = []
 
-
+    rss_sensor_missing = True
+    rss_sensor = None
 
     while True:
       #  get the RssSensor
-      rss_sensor_missing = True
-      rss_sensor = None
+
       while rss_sensor_missing:
         # print(CarlaDataProvider.get_world().get_actors().filter("vehicle*")
         sensors = CarlaDataProvider.get_world().get_actors().filter('sensor.other.rss')
@@ -81,13 +96,20 @@ def run_loop(host='127.0.0.1', port=2000):
       rss_sensor.listen(lambda event: _on_rss_response(event, safety_metrics_vector))
       # print("after listen type", type(safety_metrics_vector))
       # print("safety_metrics_vector size", len(safety_metrics_vector))
-      if len(safety_metrics_vector) > 0:
-        # print("safety_metrics_vector[-1] size", len(safety_metrics_vector[-1]))
-        safety_metrics_hist = np.array([])
-        safety_metrics_hist = np.asarray(safety_metrics_vector)
-        print("safety_metrics_hist shape", safety_metrics_hist.shape)
 
-        situations_cnt = safety_metrics_hist[-1].shape[0]
+      if len(safety_metrics_vector) > 0:
+
+        active_situations = save_metrics_history(metrics_hist_dict, safety_metrics_vector)
+        print("active situations size", len(active_situations))
+      
+        # print("safety_metrics_vector[-1] size", len(safety_metrics_vector[-1]))
+        # safety_metrics_hist = np.array([])
+        # safety_metrics_hist = np.asarray(safety_metrics_vector)
+        # print("safety_metrics_hist shape", safety_metrics_hist.shape)
+
+        # situations_cnt = safety_metrics_hist[-1].shape[0]
+        situations_cnt = len(active_situations)
+
         # print("situations_cnt", situations_cnt)
 
         # create a color palette
@@ -96,13 +118,20 @@ def run_loop(host='127.0.0.1', port=2000):
         for ax in axs:
           ax.cla()
 
-        for i in range(0, situations_cnt):
+        # for i in range(0, situations_cnt):
+        for i in active_situations:
 
-          metrics = safety_metrics_hist[:,i]
-          hist_cnt = len(metrics)
 
-          situation_id = metrics[-1].get_situation_id()
+          # metrics = safety_metrics_hist[:,i]
+          
+
+          # situation_id = metrics[-1].get_situation_id()
+          situation_id = i
+
           print("situation id", situation_id)
+
+          metrics = metrics_hist_dict[situation_id]
+          hist_cnt = len(metrics)
 
           time = []
 
@@ -198,7 +227,7 @@ def run_loop(host='127.0.0.1', port=2000):
           # plt.subplots_adjust(bottom=0.20)
           fig.suptitle('Safety Metrics')
           # plt.tight_layout()
-          plt.pause(0.001)
+        plt.pause(0.001)
 
         plt.savefig("safety_metrics.png")
         
