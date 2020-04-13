@@ -298,7 +298,7 @@ class ScenarioRunner(object):
         #                                            response_time = response_time)
         print('X0 = %s' % x0)
         print('SearchSpace = %s\n' % searchSpace)
-        #-------------------------------
+        #------------------------------- 
         X0 =[]
         for _ in range(num_simult_runs):
             X0.append(x0)
