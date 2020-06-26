@@ -260,7 +260,7 @@ class ScenarioRunner(object):
 
         ## initial values ?
         alpha_lon_accel_max = 3.5
-        response_time       = 1.0
+        response_time       = 0.1
         alpha_lon_brake_max = 6.0
         alpha_lon_brake_min = 3.5 
         alpha_lat_accel_max = 0.1
