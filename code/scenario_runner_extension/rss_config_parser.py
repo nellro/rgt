@@ -7,7 +7,7 @@ from srunner.scenarioconfigs.route_scenario_configuration import TargetConfigura
 class RssActorConfiguration(ActorConfiguration):
     def __init__(self, node, rolename):
     	self.target_speed = float(node.attrib.get('target_speed', 0)) 
-
+        
     	super(RssActorConfiguration, self).__init__(node, rolename)
 
 
@@ -33,6 +33,7 @@ class RssScenarioConfiguration(object):
     type = None
     target = None
     camera = None
+    weather = carla.WeatherParameters()
 
 
 def parse_rss_scenario_configuration(scenario_config_file, scenario_name):
@@ -49,6 +50,14 @@ def parse_rss_scenario_configuration(scenario_config_file, scenario_name):
         new_config.type = scenario.attrib.get('type', None)
         new_config.other_actors = []
         new_config.ego_vehicles = []
+
+        for weather in scenario.iter("weather"):
+            new_config.weather.cloudiness = float(weather.attrib.get("cloudiness", 0))
+            new_config.weather.precipitation = float(weather.attrib.get("precipitation", 0))
+            new_config.weather.precipitation_deposits = float(weather.attrib.get("precipitation_deposits", 0))
+            new_config.weather.wind_intensity = float(weather.attrib.get("wind_intensity", 0.35))
+            new_config.weather.sun_azimuth_angle = float(weather.attrib.get("sun_azimuth_angle", 0.0))
+            new_config.weather.sun_altitude_angle = float(weather.attrib.get("sun_altitude_angle", 15.0))
 
         for ego_vehicle in scenario.iter("ego_vehicle"):
             new_config.ego_vehicles.append(RssActorConfiguration(ego_vehicle, 'hero'))

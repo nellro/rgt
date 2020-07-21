@@ -46,12 +46,13 @@ class RssLVDAD(BasicScenario):
         return StandStill(self.ego_vehicles[0], name="StandStill")
          
     def _create_behavior(self):
-       
+        print("creating behavior")
         acceleration_value = 0.7 # how to turn into g?
         braking_value_soft = 0.1 #
         braking_value_hard = 0.6 #
         wait_time = 6 #sec
         dist_endcond = 60 # depends on the behavior of the front car. change if the acc/braking vals are different
+        
         ##############################################
         #------------------------------------
         p1 = py_trees.composites.Parallel(policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ONE)

@@ -81,7 +81,7 @@ def print_dynamics(rss_dynamics):
 # -- RssSensor --------------------------------------------------------
 # ==============================================================================
 class RssSensor(object):
-    def __init__(self, parent_actor, rss_params):
+    def __init__(self, parent_actor, rss_params, routing_targets=None):
         self.sensor = None
         self._parent = parent_actor
         self.timestamp = None
@@ -90,13 +90,19 @@ class RssSensor(object):
         self.acceleration_restriction = None
         self.individual_rss_states = None
         self.ego_dynamics_on_route = None
+        self.current_display_parameters = None  # for display
+        self.assertive_parameters = False
+       
         self.lon_response = None
         self.lat_response_right = None
         self.lat_response_left = None
         self.acceleration_restriction = None
         self.ego_velocity = None
+
         self.rss_params = rss_params
+        
         self.safety_metrics = None
+
         world = self._parent.get_world()
         bp = world.get_blueprint_library().find('sensor.other.rss')
         self.sensor = world.spawn_actor(bp, carla.Transform(carla.Location(x=0.0, z=0.0)), attach_to=self._parent)
@@ -109,60 +115,108 @@ class RssSensor(object):
         if not inspect.getmembers(carla, check_rss_class):
             raise RuntimeError('CARLA PythonAPI not compiled in RSS variant, please "make PythonAPI.rss"')
         weak_self = weakref.ref(self)
-        self.sensor.visualize_results = True
         self.sensor.listen(lambda event: RssSensor._on_rss_response(weak_self, event))
-        self.sensor.routing_target = carla.Transform(carla.Location(x=335, y=153))
-        print ("RSS Sensor:")
-        print(dir(self.sensor))
+        self.sensor.visualization_mode = carla.RssVisualizationMode.All
+        self.sensor.visualize_results = True
+        self.sensor.road_boundaries_mode = carla.RssRoadBoundariesMode.Off
+        self.set_default_parameters()
+        self.sensor.reset_routing_targets()
+        if routing_targets:
+            for target in routing_targets:
+                self.sensor.append_routing_target(target)
 
-        def set_parameters(rss_dynamics, rss_params):
-            for key, value in rss_params.items(): 
-                if (key == 'alpha_lon_accel_max'):
-                    # rss_dynamics.alpha_lon.accel_max = carla.Acceleration(value)
-                    rss_dynamics.alphaLon.accelMax = value
-                elif (key == 'alpha_lon_brake_max'):
-                    # rss_dynamics.alpha_lon.brake_max = carla.Acceleration(value)
-                    rss_dynamics.alphaLon.brakeMax = value
-                elif (key == 'alpha_lon_brake_min'):
-                    # rss_dynamics.alpha_lon.brake_min = carla.Acceleration(value)
-                    rss_dynamics.alphaLon.brakeMin = value
-                elif (key == 'alpha_lon_brake_min_correct'):
-                    # rss_dynamics.alpha_lon.brake_min_correct = carla.Acceleration(value)
-                    rss_dynamics.alphaLon.brakeMinCorrect = value
-                elif (key == 'alpha_lat_accel_max'):
-                    # rss_dynamics.alpha_lat.accel_max = carla.Acceleration(value)
-                    rss_dynamics.alphaLat.accelMax = value
-                elif (key =='alpha_lat_brake_min'):
-                    # rss_dynamics.alpha_lat.brake_min = carla.Acceleration(value)
-                    rss_dynamics.alphaLat.brakeMin = value
-                elif (key =='lateral_fluctuation_margin'):
-                    # rss_dynamics.lateral_fluctuation_margin = carla.Distance(value)
-                    rss_dynamics.lateralFluctuationMargin = value
-                elif (key =='response_time'):
-                    # rss_dynamics.response_time = carla.Duration(value)     
-                    rss_dynamics.responseTime = value     
-                else:
-                    print('WRONG RSS PARAM LABEL')
-                    exit()
-            return rss_dynamics
-        
-        rss_dynamics = set_parameters(self.sensor.ego_vehicle_dynamics, self.rss_params)
-        self.sensor.ego_vehicle_dynamics = rss_dynamics
+        # self.sensor.routing_target = carla.Transform(carla.Location(x=335, y=153))
+
+        # rss_dynamics = set_parameters(self.sensor.ego_vehicle_dynamics, self.rss_params)
+        # self.sensor.ego_vehicle_dynamics = rss_dynamics
         print_dynamics(self.sensor.ego_vehicle_dynamics)
+
+    def get_assertive_parameters(self):
+        ego_dynamics = self.sensor.ego_vehicle_dynamics
+        ego_dynamics.alphaLon.accelMax = 4.1
+        ego_dynamics.alphaLon.brakeMin = -4.64
+        ego_dynamics.alphaLon.brakeMinCorrect = -1.76
+        ego_dynamics.alphaLon.brakeMax = -8.03
+        ego_dynamics.alphaLat.brakeMin = -0.96
+        ego_dynamics.alphaLat.accelMax = 0.43
+        ego_dynamics.lateralFluctuationMargin = 0.07
+        ego_dynamics.responseTime = 0.53
+        ego_dynamics.maxSpeed = 100
+        return ego_dynamics
+
+    def set_assertive_parameters(self):
+        print("Use 'assertive' Ego RSS Parameters")
+        ego_dynamics = self.get_assertive_parameters()
+        self.assertive_parameters = True
+        self.sensor.ego_vehicle_dynamics = ego_dynamics
+        self.current_display_parameters = ego_dynamics
+
+    def get_default_parameters(self):
+        ego_dynamics = self.sensor.ego_vehicle_dynamics
+        # default, from ad_rss documentation
+        ego_dynamics.alphaLon.accelMax = 3.5
+        ego_dynamics.alphaLon.brakeMin = -4
+        ego_dynamics.alphaLon.brakeMax = -8
+        ego_dynamics.alphaLon.brakeMinCorrect = -3
+        ego_dynamics.alphaLat.brakeMin = -0.8
+        ego_dynamics.alphaLat.accelMax = 0.2
+        ego_dynamics.lateralFluctuationMargin = 0.1
+        ego_dynamics.responseTime = 1.0
+        ego_dynamics.maxSpeed = 100
+        return ego_dynamics
+
+    def set_default_parameters(self):
+        print("Use 'default' Ego RSS Parameters")
+        ego_dynamics = self.get_default_parameters()
+        self.assertive_parameters = False
+        self.sensor.ego_vehicle_dynamics = ego_dynamics
+        self.current_display_parameters = ego_dynamics
+
+
+    def set_parameters(rss_dynamics, rss_params):
+        for key, value in rss_params.items(): 
+            if (key == 'alpha_lon_accel_max'):
+                rss_dynamics.alphaLon.accelMax = value
+            elif (key == 'alpha_lon_brake_max'):
+                rss_dynamics.alphaLon.brakeMax = value
+            elif (key == 'alpha_lon_brake_min'):
+                rss_dynamics.alphaLon.brakeMin = value
+            elif (key == 'alpha_lon_brake_min_correct'):
+                rss_dynamics.alphaLon.brakeMinCorrect = value
+            elif (key == 'alpha_lat_accel_max'):
+                rss_dynamics.alphaLat.accelMax = value
+            elif (key =='alpha_lat_brake_min'):
+                rss_dynamics.alphaLat.brakeMin = value
+            elif (key =='lateral_fluctuation_margin'):
+                rss_dynamics.lateralFluctuationMargin = value
+            elif (key =='response_time'):
+                rss_dynamics.responseTime = value     
+            else:
+                print('WRONG RSS PARAM LABEL')
+                exit()
+        return rss_dynamics
+    
 
     @staticmethod
     def _on_rss_response(weak_self, response):
+
         
         self = weak_self()
-        if not self:
+        if not self or not response:
             return
-        self.timestamp = response.timestamp
-        self.response_valid = response.response_valid
-        self.proper_response = response.proper_response
-        # self.lon_response = self.proper_response.longitudinal_response
-        # self.lat_response_right = self.proper_response.lateral_response_right
-        # self.lat_response_left = self.proper_response.lateral_response_left
-        self.acceleration_restriction = response.acceleration_restriction
-        self.ego_dynamics_on_route = response.ego_dynamics_on_route
-        # self.safety_metrics = response.safety_metrics
+        delta_time = 0.1
+        if self.timestamp:
+            delta_time = response.timestamp - self.timestamp
+        # debug drawing within the RssSensor takes quite some time
+        # while debug drawing is blocking a thread the respective response usually arrives later
+        if delta_time > -0.05:
+            self.timestamp = response.timestamp
+            self.response_valid = response.response_valid
+            self.proper_response = response.proper_response
+            self.acceleration_restriction = response.acceleration_restriction
+            self.ego_dynamics_on_route = response.ego_dynamics_on_route
+        else:
+            print("ignore outdated response {}".format(delta_time))
 
+    def drop_route(self):
+        self.sensor.drop_route()

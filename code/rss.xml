@@ -40,5 +40,9 @@
         <other_actor x="339" y="153" z="1" yaw="270" target_speed="10" model="vehicle.tesla.model3" />
         <camera x="337.4" y="133" z="60" yaw="0" pitch="-90" />
     </scenario>
+    <scenario name="FollowLeadingVehicle_1" type="FollowLeadingVehicle" town="Town01">
+        <ego_vehicle x="107" y="133" z="0.5" yaw="0" model="vehicle.lincoln.mkz2017"/>
+        <weather cloudiness="0" precipitation="0" precipitation_deposits="0" wind_intensity="0" sun_azimuth_angle="0" sun_altitude_angle="75"/>
+    </scenario>
 </scenarios>
 
