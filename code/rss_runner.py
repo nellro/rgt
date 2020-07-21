@@ -505,8 +505,8 @@ if __name__ == '__main__':
     #ARGUMENTS.scenario = 'Rss_LVM1'
     #ARGUMENTS.scenario = 'Rss_LVM2'
     # ARGUMENTS.scenario = 'Rss_LVD'
-    # ARGUMENTS.scenario = 'Rss_LVDAD'
-    ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
+    ARGUMENTS.scenario = 'Rss_LVDAD'
+    # ARGUMENTS.scenario = 'Rss_OppositeVehicleRunningRedLight'
     # ARGUMENTS.scenario = 'Rss_PovUnprotectedLeft'
     ###############################################################
 

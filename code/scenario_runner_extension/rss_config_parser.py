@@ -61,7 +61,7 @@ def parse_rss_scenario_configuration(scenario_config_file, scenario_name):
 
         for ego_vehicle in scenario.iter("ego_vehicle"):
             new_config.ego_vehicles.append(RssActorConfiguration(ego_vehicle, 'hero'))
-            #new_config.trigger_points.append(new_config.ego_vehicles[-1].transform)
+            # new_config.trigger_points.append(new_config.ego_vehicles[-1].transform)
 
         for target in scenario.iter("target"):
             new_config.target = TargetConfiguration(target)

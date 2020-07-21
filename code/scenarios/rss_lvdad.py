@@ -23,11 +23,13 @@ class RssLVDAD(BasicScenario):
         self._other_actor_transform = None
 
         super(RssLVDAD, self).__init__("LVDAD",
-                                                   ego_vehicles,
-                                                   config,
-                                                   world,
-                                                   debug_mode,
-                                                   criteria_enable=criteria_enable)
+                                        ego_vehicles,
+                                        config,
+                                        world,
+                                        debug_mode,
+                                        criteria_enable=criteria_enable)
+
+        print("RssLVDAD __init__")
 
     def _initialize_actors(self, config):
         """
@@ -42,11 +44,13 @@ class RssLVDAD(BasicScenario):
         first_vehicle = CarlaActorPool.request_new_actor(config.other_actors[0].model, first_vehicle_transform)
         self.other_actors.append(first_vehicle)
 
+        print("RssLVDAD _initialize_actors")
+
     def _setup_scenario_trigger(self, config):
         return StandStill(self.ego_vehicles[0], name="StandStill")
          
     def _create_behavior(self):
-        print("creating behavior")
+        print("RssLVDAD _create_behavior")
         acceleration_value = 0.7 # how to turn into g?
         braking_value_soft = 0.1 #
         braking_value_hard = 0.6 #
@@ -105,7 +109,7 @@ class RssLVDAD(BasicScenario):
         parallel_drive.add_child(pov_driving)
         parallel_drive.add_child(ego_driving)
 
-        seq = py_trees.composites.Sequence()
+        seq = py_trees.composites.Sequence("Sequence Behavior")
         seq.add_child(ActorTransformSetter(self.other_actors[0], self._other_actor_transform))
         seq.add_child(parallel_drive)
         seq.add_child(ActorDestroy(self.other_actors[0]))
@@ -115,6 +119,7 @@ class RssLVDAD(BasicScenario):
 
 
     def _create_test_criteria(self):
+        print("RssLVDAD _create_test_criteria")
         criteria = []
         rss_criterion = RssTest(self.ego_vehicles[0], self._filename)
         criteria.append(rss_criterion)

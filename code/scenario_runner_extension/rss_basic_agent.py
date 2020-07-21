@@ -14,20 +14,21 @@ class RssBasicAgent(BasicAgent):
   def __init__(self, vehicle, target_speed, rss_params, restrictor=True):
     
     super(RssBasicAgent, self).__init__(vehicle, target_speed)
-    print(rss_params)
     self._rss_sensor = RssSensor(vehicle, rss_params)
     
     self._restrictor = None
     if restrictor:
       self._restrictor = carla.RssRestrictor()
-
+    
+    
     self._physics_control_static = vehicle.get_physics_control()
+    print("RssBasicAgentinit __init__")
 
   def run_step(self):
     # call basic agent control first
-    print("run Rss Agent step")
+    print("RssBasicAgent run_step")
     control = super(RssBasicAgent, self).run_step()
-    
+
     #-------------------------------------
     if self._restrictor:
       rss_restriction = self._rss_sensor.acceleration_restriction if self._rss_sensor and self._rss_sensor.response_valid else None

@@ -20,10 +20,10 @@ class RssBasicAgentBehavior(AtomicBehavior):
         self._control = carla.VehicleControl()
         self._target_location = target_location
 
-        print("Init RssBasicAgentBehavior OK")
+        print("RssBasicAgentBehavior __init__")
 
     def update(self):
-        print("Rss Atomic behavior update")
+        print("RssBasicAgentBehavior update")
         new_status = py_trees.common.Status.RUNNING
         self._control = self._agent.run_step()
         self._actor.apply_control(self._control)
