@@ -1,4 +1,4 @@
-# RGT (Robusntess-guided testing)
+# RGT (Robustness-guided testing)
 RSS, CARLA, parameter exploration and magic.
 
 # Usage
